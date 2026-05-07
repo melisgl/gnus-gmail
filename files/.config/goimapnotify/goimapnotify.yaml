@@ -1,0 +1,34 @@
+configurations:
+  -
+    host: imap.gmail.com
+    port: 993
+    tls: true
+    usernamecmd: 'cat ${MAILDIR}/gmail-username'
+    passwordCmd: 'gpg -q --for-your-eyes-only --no-tty -d ${MAILDIR}/gmail-password.gpg'
+    wait: 0
+    boxes:
+      -
+        # We monitor "[Gmail]/All Mail". This way we get notified of
+        # all emails regardless of their IMAP folder (i.e. Gmail
+        # label). This works nicely with server side splitting (i.e.
+        # Gmail filters that assign labels). If a filter archives the
+        # email (i.e. removes it from Inbox) without assigning a label
+        # to it, then we get a notification, but since we don't sync
+        # "All Mails" to avoid duplication (see .mbsyncrc), the email
+        # will not be downloaded.
+        #
+        # Another possibility is to monitor Inbox only, split mail
+        # locally, and rely on local->remote syncing to have the right
+        # labels applied in Gmail.
+        #
+        # Yet another possibility is to monitor all IMAP folders with
+        # the exception of "All Mail", but Gmail has a strict limit of
+        # 15 for simultaneous connections.
+        mailbox: '[Gmail]/All Mail'
+        onNewMail: 'mbsync-gmail-full'
+        # These events may be triggered when mbsync propagates local
+        # changes to Gmail, so don't react to them to prevent
+        # unnecessary syncing. These kinds of changes are propagated
+        # only when new mail arrives and by mbsync.{timer,service}.
+        onChangedMail: ''
+        onDeletedMail: ''

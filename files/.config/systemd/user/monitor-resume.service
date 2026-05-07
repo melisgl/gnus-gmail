@@ -1,0 +1,12 @@
+[Unit]
+Description=Monitor D-Bus for system resume
+After=dbus.socket
+
+[Service]
+Type=simple
+ExecStart=%h/bin/monitor-resume
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

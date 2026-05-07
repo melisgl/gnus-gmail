@@ -1,0 +1,13 @@
+[Unit]
+Description=Propagate changes from the local Maildir to Gmail
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/bin/mbsync-gmail-full
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=timers.target

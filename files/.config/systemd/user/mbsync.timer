@@ -1,0 +1,11 @@
+[Unit]
+Description=mbsync timer
+
+[Timer]
+# Time left for apps to start
+OnStartupSec=2m
+# The wait between the end of the previous and the start of the next run
+OnUnitInactiveSec=60m
+
+[Install]
+WantedBy=timers.target

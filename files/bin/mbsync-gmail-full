@@ -1,0 +1,16 @@
+#!/bin/sh
+
+emacs_get_news() {
+    emacsclient --eval \
+        "(when (and (fboundp 'gnus-alive-p)
+               (gnus-alive-p))
+           (gnus-group-get-new-news))"
+}
+
+# We first check only the Inbox to minimize the latency in the common
+# case.
+mbsync --pull-new gmail-inbox
+emacs_get_news
+
+mbsync gmail-full
+emacs_get_news

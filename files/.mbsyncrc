@@ -1,0 +1,90 @@
+Create Both
+Expunge Both
+# Make each maildir have its mbsync state file in the maildir itself.
+SyncState *
+
+# Personal Gmail
+
+IMAPAccount gmail
+Host imap.gmail.com
+TLSType IMAPS
+SystemCertificates yes
+UserCmd "cat ${MAILDIR}/gmail-username"
+PassCmd "gpg -q --for-your-eyes-only --no-tty -d ${MAILDIR}/gmail-password.gpg"
+# This might help with Gmail throttling.
+PipelineDepth 50
+
+IMAPStore gmail-remote
+Account gmail
+# Deleting on Gmail is a mess. The only way to actually delete an
+# email from all folders (labels) is to move it the trash. 
+#
+# So we disable auto-expunge in the Gmail IMAP settings and set "When
+# a message is marked as deleted and expunged from the last visible
+# IMAP folder:" to "Move the message the Trash". With auto-expunge,
+# Gmail would remove the label and archive the message but not delete
+# it.
+#
+# This setting makes Gmail actually delete emails on expunge. Change
+# "Trash" to the actual name of the folder (check on Gmail).
+Trash "[Gmail]/Trash"
+# With the above Trash option, the mbsync man page recommends not
+# syncing this folder. Without the above, expunge does not delete the
+# email,and one has to recover by searching for "has:nouserlabels
+# -in:inbox -in:sent -in:drafts" in Gmail and deleting the matches.
+#
+# An alternative is to hide "All Mail" folder in the Gmail IMAP
+# settings.
+
+# Write mail directly to a Maildir behind Dovecot's back.
+MaildirStore gmail-local
+Inbox "${MAILDIR}/"
+# For Dovecot
+SubFolders Maildir++
+
+## Alternatively, we could write via Dovecot, but that is unnecessary
+## and slow (--push is not scalable because it needs to get all the
+## headers from dovecot).
+# IMAPStore gmail-local
+# Path gmail.
+## This is a script that does '/usr/lib/dovecot/imap -c ~/.dovecot.conf'.
+# Account local-dovecot-tunnel
+
+Channel gmail-user-defined
+Far :gmail-remote:
+Near :gmail-local:gmail/
+# Without the exclusion of e.g. Drafts, I sometimes get "Error:
+# channel gmail-user-defined: far side box Drafts cannot be opened
+# anymore."
+Patterns * !INBOX !"[Gmail]/*" !Inbox !Drafts !Trash !Spam !"Sent Mail"
+
+Channel gmail-inbox
+Far :gmail-remote:INBOX
+Near :gmail-local:gmail/Inbox
+
+Channel gmail-drafts
+Far :gmail-remote:[Gmail]/Drafts
+Near :gmail-local:gmail/Drafts
+
+Channel gmail-sent-mail
+Far :gmail-remote:"[Gmail]/Sent Mail"
+Near :gmail-local:gmail/"Sent Mail"
+
+Channel gmail-spam
+Far :gmail-remote:[Gmail]/Spam
+Near :gmail-local:gmail/Spam
+
+Group gmail-non-inbox
+Channel gmail-user-defined
+Channel gmail-drafts
+Channel gmail-sent-mail
+Channel gmail-spam
+
+# Not quite everything. For example, "All Mail" is excluded because
+# including it would duplicate all emails.
+Group gmail-full
+Channel gmail-inbox
+Channel gmail-user-defined
+Channel gmail-drafts
+Channel gmail-sent-mail
+Channel gmail-spam
