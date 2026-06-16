@@ -136,10 +136,15 @@ throttling. Look for `THROTTLED` in the output of `mbsync -V -DmMnN --all`.
 See the [systemd config files](files/.config/systemd/user/).
 
 - `goimapnotify.service` keeps `goimapnotify` running.
-- `monitor-resume.timer` restarts `goimapnotify.service` when the
+- `monitor-resume.service` restarts `goimapnotify.service` when the
   system resumes from e.g suspend.
 - `mbsync.timer` runs a full mbsync every hour to propagate local
   changes (e.g. deletes, moves, read status) to Gmail.
+
+Start the services:
+
+    systemctl --user enable --now goimapnotify.service \
+        monitor-resume.service mbsync.timer
 
 You can monitor their outputs with
 
