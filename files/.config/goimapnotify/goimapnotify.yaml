@@ -5,7 +5,10 @@ configurations:
     tls: true
     usernamecmd: 'cat ${MAILDIR}/gmail-username'
     passwordCmd: 'gpg -q --for-your-eyes-only --no-tty -d ${MAILDIR}/gmail-password.gpg'
-    wait: 0
+    # Oh, the wonders of asynchronous notifications. Even if we get an
+    # IDLE notification, sometimes the mail is not available yet to
+    # download.
+    wait: 1
     boxes:
       -
         # We monitor "[Gmail]/All Mail". This way we get notified of
